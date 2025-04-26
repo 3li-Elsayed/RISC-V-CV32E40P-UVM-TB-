@@ -1,0 +1,111 @@
+`ifndef CV32E40P_SCOREBOARD_SV
+
+
+class scoreboard extends uvm_component;
+  `uvm_component_utils(scoreboard)
+
+  // Analysis ports from monitors and reference model
+  uvm_analysis_imp #(instruction_item, scoreboard) inst_mon_port;
+  uvm_analysis_imp #(data_item, scoreboard) data_mon_port;
+  uvm_analysis_imp #(interrupt_item, scoreboard) intr_mon_port;
+  uvm_analysis_imp #(pass_agent_trans, scoreboard) pass_agent_mon_port;
+  
+  uvm_analysis_imp #(instruction_item, scoreboard) inst_ref_port;
+  uvm_analysis_imp #(data_item, scoreboard) data_ref_port;
+  uvm_analysis_imp #(interrupt_item, scoreboard) intr_ref_port;
+
+  // Queues to hold transactions for comparison
+  instruction_item inst_queue[$];
+  data_item data_queue[$];
+  interrupt_item intr_queue[$];
+  pass_agent_trans pass_agent_queue[$];
+
+  instruction_item inst_ref_queue[$];
+  data_item data_ref_queue[$];
+  interrupt_item intr_ref_queue[$];
+
+  // Error counters
+  int inst_errors = 0;
+  int data_errors = 0;
+  int intr_errors = 0;
+  int pass_agent_errors = 0 ;
+  // Constructor
+  function new(string name, uvm_component parent);
+    super.new(name, parent);
+  endfunction
+
+  // Build phase - create analysis ports
+  function void build_phase(uvm_phase phase);
+    super.build_phase(phase);
+    inst_mon_port = new("inst_mon_port", this);
+    data_mon_port = new("data_mon_port", this);
+    intr_mon_port = new("intr_mon_port", this);
+    pass_agent_mon_port = new ("pass_agent_mon_port",this);
+
+    inst_ref_port = new("inst_ref_port", this);
+    data_ref_port = new("data_ref_port", this);
+    intr_ref_port = new("intr_ref_port", this);
+  endfunction
+
+  // Connect phase  
+  function void connect_phase(uvm_phase phase);
+    super.connect_phase(phase);
+  endfunction
+
+  // Write methods for monitor ports
+  function void write_inst(instruction_item item);
+    inst_queue.push_back(item);
+    check_instruction();
+  endfunction
+
+  function void write_data(data_item item);
+    data_queue.push_back(item);
+    check_data();
+  endfunction
+
+  function void write_intr(interrupt_item item);
+    intr_queue.push_back(item);
+    check_interrupt();
+  endfunction
+
+  function void write_intr(interrupt_item item);
+    pass_agent_queue.push_back(item);
+    check_pass_agent();
+  endfunction
+
+  // Write methods for reference model ports
+  function void write_inst_ref(instruction_item item);
+    inst_ref_queue.push_back(item);
+    check_instruction();
+  endfunction
+
+  function void write_data_ref(data_item item);
+    data_ref_queue.push_back(item);
+    check_data();
+  endfunction
+
+  function void write_intr_ref(interrupt_item item);
+    intr_ref_queue.push_back(item);
+    check_interrupt();
+  endfunction
+
+
+  // Report phase - print scoreboard results
+  function void report_phase(uvm_phase phase);
+    super.report_phase(phase);
+    `uvm_info("SCOREBOARD", $sformatf("Instruction Errors: %0d", inst_errors), UVM_MEDIUM)
+    `uvm_info("SCOREBOARD", $sformatf("Data Access Errors: %0d", data_errors), UVM_MEDIUM)
+    `uvm_info("SCOREBOARD", $sformatf("Interrupt Errors: %0d", intr_errors), UVM_MEDIUM)
+    `uvm_info("SCOREBOARD", $sformatf("passive agent Errors Errors: %0d", pass_agent_errors), UVM_MEDIUM)
+    
+    
+    if (inst_errors + data_errors + intr_errors + pass_agent_errors == 0) begin
+      `uvm_info("SCOREBOARD", "TEST PASSED - No mismatches detected", UVM_NONE)
+    end else begin
+      `uvm_error("SCOREBOARD", "TEST FAILED - Mismatches detected")
+    end
+  endfunction
+
+endclass
+
+`endif // scoreboard_SV
