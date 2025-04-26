@@ -1,0 +1,68 @@
+`ifndef my_subscriber_SV
+
+
+class Coverage_Collector extends uvm_component;
+  `uvm_component_utils(Coverage_Collector)
+
+  // Analysis ports from monitors
+  uvm_analysis_imp #(instruction_item, Coverage_Collector) inst_port;
+  uvm_analysis_imp #(data_item, Coverage_Collector) data_port;
+  uvm_analysis_imp #(interrupt_item, Coverage_Collector) intr_port;
+  uvm_analysis_imp #(interrupt_item, Coverage_Collector) pass_agent_port;
+
+  // Class-level transaction object
+    instruction_item instruction;
+    data_item data;
+    interrupt_item interrupt;
+    pass_agent_item pass_agent_trans;
+
+  // Constructor
+  function new(string name, uvm_component parent);
+    super.new(name, parent);
+
+  endfunction
+
+  // Build phase - create analysis ports
+  function void build_phase(uvm_phase phase);
+    super.build_phase(phase);
+    inst_port = new("inst_port", this);
+    data_port = new("data_port", this);
+    intr_port = new("intr_port", this);
+    pass_agent_port = new("pass_agent_port", this);
+  endfunction
+
+  // Connect phase - typically nothing needed here for coverage collector
+  function void connect_phase(uvm_phase phase);
+    super.connect_phase(phase);
+  endfunction
+
+  // Write methods for each analysis port
+  function void write_inst(instruction_item inst_item);
+    
+    instruction = inst_item ;   
+ 
+  endfunction
+
+  function void write_data(data_item data_item);
+   
+    data = data_item ; 
+
+   
+  endfunction
+
+  function void write_intr(interrupt_item intr_item);
+ 
+  interrupt = intr_item ;
+  
+  endfunction
+
+  function void write_pass_agent(pass_agent_item pass_item);
+ 
+  pass_agent_trans = pass_item ;
+  
+  endfunction
+
+
+endclass
+
+`endif // my_subscriber_SV
